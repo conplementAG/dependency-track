@@ -96,7 +96,15 @@ public class ModelConverter {
         component.setPublisher(StringUtils.trimToNull(cycloneDxComponent.getPublisher()));
         component.setGroup(StringUtils.trimToNull(cycloneDxComponent.getGroup()));
         component.setName(StringUtils.trimToNull(cycloneDxComponent.getName()));
-        
+        component.setVersion(StringUtils.trimToNull(cycloneDxComponent.getVersion()));
+        component.setDescription(StringUtils.trimToNull(cycloneDxComponent.getDescription()));
+        component.setCopyright(StringUtils.trimToNull(cycloneDxComponent.getCopyright()));
+        component.setCpe(StringUtils.trimToNull(cycloneDxComponent.getCpe()));
+
+        if (cycloneDxComponent.getSwid() != null) {
+            component.setSwidTagId(StringUtils.trimToNull(cycloneDxComponent.getSwid().getTagId()));
+        }
+
         if (StringUtils.isNotBlank(cycloneDxComponent.getPurl())) {
             try {
                 final PackageURL purl = new PackageURL(StringUtils.trimToNull(cycloneDxComponent.getPurl()));
@@ -106,70 +114,6 @@ public class ModelConverter {
                 LOGGER.warn("Unable to parse PackageURL: " + cycloneDxComponent.getPurl());
             }
         }
-
-        String rawVersion = StringUtils.trimToNull(cycloneDxComponent.getVersion());
-        String updatedVersion = rawVersion;
-        // Ubuntu specifica
-        if(null != component.getPurl())
-        {
-            String strCoordinate = component.getPurl().getCoordinates();
-            LOGGER.info("Post processing: " + rawVersion + " of " + strCoordinate);
-
-            if(strCoordinate.contains("pkg:deb/ubuntu") || strCoordinate.contains("pkg:deb/debian"))
-            {
-                //pkg:deb/ubuntu
-                //1:1.2.11.dfsg-2ubuntu9 	--> 1.2.11
-                //pkg:deb/debian
-                //1:1.2.11.dfsg-2+deb11u1 --> 1.2.11
-                String[] parts = updatedVersion.split(":");
-                if(parts.length > 1)
-                {
-                    updatedVersion = "";
-                    for (int i=1; i<parts.length;i++)
-                    {
-                        updatedVersion += parts[i];
-                    }
-                }
-
-                parts = updatedVersion.split(".dfsg");
-                if(parts.length > 1)
-                {
-                    updatedVersion = "";
-                    for (int i=0; i<parts.length-1;i++)
-                    {
-                        updatedVersion += parts[i];
-                    }
-                }
-
-                LOGGER.info("Post processing of component version: Debian/Ubuntu to" + updatedVersion);
-            }
-            else if(strCoordinate.contains("pkg:alpine"))
-            {
-                //pkg:alpine
-                //1.2.11-r3 --> 1.2.11
-                String[] parts = updatedVersion.split("-r");
-                if(parts.length > 1)
-                {
-                    updatedVersion = "";
-                    for (int i=0; i<parts.length-1;i++)
-                    {
-                        updatedVersion += parts[i];
-                    }
-                }
-                LOGGER.info("Post processing of component version: Alpine to" + updatedVersion);
-            }
-        }
-        component.setVersion(updatedVersion);
-
-        component.setDescription(StringUtils.trimToNull(cycloneDxComponent.getDescription()));
-        component.setCopyright(StringUtils.trimToNull(cycloneDxComponent.getCopyright()));
-        component.setCpe(StringUtils.trimToNull(cycloneDxComponent.getCpe()));
-
-        if (cycloneDxComponent.getSwid() != null) {
-            component.setSwidTagId(StringUtils.trimToNull(cycloneDxComponent.getSwid().getTagId()));
-        }
-
-
 
         component.setInternal(InternalComponentIdentificationUtil.isInternalComponent(component, qm));
 

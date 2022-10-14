@@ -124,6 +124,57 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
             componentVersion = componentVersion.substring(1);
         }
 
+        // Ubuntu specifica
+        if(null != component.getPurl())
+        {
+            String strCoordinate = component.getPurl().getCoordinates();
+            LOGGER.info("Post processing: " + componentVersion + " of " + strCoordinate);
+
+            if(strCoordinate.contains("pkg:deb/ubuntu") || strCoordinate.contains("pkg:deb/debian"))
+            {
+                //pkg:deb/ubuntu
+                //1:1.2.11.dfsg-2ubuntu9 	--> 1.2.11
+                //pkg:deb/debian
+                //1:1.2.11.dfsg-2+deb11u1 --> 1.2.11
+                String[] parts = componentVersion.split(":");
+                if(parts.length > 1)
+                {
+                    componentVersion = "";
+                    for (int i=1; i<parts.length;i++)
+                    {
+                        componentVersion += parts[i];
+                    }
+                }
+
+                parts = componentVersion.split(".dfsg");
+                if(parts.length > 1)
+                {
+                    componentVersion = "";
+                    for (int i=0; i<parts.length-1;i++)
+                    {
+                        componentVersion += parts[i];
+                    }
+                }
+
+                LOGGER.info("Post processing of component version: Debian/Ubuntu to" + componentVersion);
+            }
+            else if(strCoordinate.contains("pkg:alpine"))
+            {
+                //pkg:alpine
+                //1.2.11-r3 --> 1.2.11
+                String[] parts = componentVersion.split("-r");
+                if(parts.length > 1)
+                {
+                    componentVersion = "";
+                    for (int i=0; i<parts.length-1;i++)
+                    {
+                        componentVersion += parts[i];
+                    }
+                }
+                LOGGER.info("Post processing of component version: Alpine to" + componentVersion);
+            }
+        }
+
         if (parsedCpe != null) {
             final List<VulnerableSoftware> vsList = qm.getAllVulnerableSoftware(parsedCpe.getPart().getAbbreviation(), parsedCpe.getVendor(), parsedCpe.getProduct(), component.getPurl());
             super.analyzeVersionRange(qm, vsList, componentVersion, parsedCpe.getUpdate(), component);
