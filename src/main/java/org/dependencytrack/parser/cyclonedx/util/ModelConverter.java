@@ -112,7 +112,7 @@ public class ModelConverter {
         // Ubuntu specifica
         if(null != component.getPurl())
         {
-            String strCoordinate = component.getPurl();
+            String strCoordinate = component.getPurl().getCoordinates();
             LOGGER.info("Post processing: " + rawVersion + " of " + strCoordinate);
 
             if(strCoordinate.contains("pkg:deb/ubuntu") || strCoordinate.contains("pkg:deb/debian"))
@@ -127,7 +127,7 @@ public class ModelConverter {
                     updatedVersion = "";
                     for (int i=1; i<parts.length;i++)
                     {
-                        updatedVersion.append(parts[i]);
+                        updatedVersion += parts[i];
                     }
                 }
 
@@ -137,7 +137,7 @@ public class ModelConverter {
                     updatedVersion = "";
                     for (int i=0; i<parts.length-1;i++)
                     {
-                        updatedVersion.append(parts[i]);
+                        updatedVersion += parts[i];
                     }
                 }
 
@@ -153,7 +153,7 @@ public class ModelConverter {
                     updatedVersion = "";
                     for (int i=0; i<parts.length-1;i++)
                     {
-                        updatedVersion.append(parts[i]);
+                        updatedVersion += parts[i];
                     }
                 }
                 LOGGER.info("Post processing of component version: Alpine to" + updatedVersion);
