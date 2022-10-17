@@ -136,12 +136,12 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
                 //1:1.2.11.dfsg-2ubuntu9 --> 1.2.11
                 //pkg:deb/debian
                 //1:1.2.11.dfsg-2+deb11u1 --> 1.2.11
-                componentVersion = removeFirstOccurence(componentVersion, ":");
+                componentVersion = removeAnyBeforeFirstOccurence(componentVersion, ":");
 
-                componentVersion = removeLastOccurence(componentVersion, ".dfsg");
-                componentVersion = removeLastOccurence(componentVersion, "+dfsg");
-                componentVersion = removeLastOccurence(componentVersion, "ubuntu");
-                componentVersion = removeLastOccurence(componentVersion, "-");
+                componentVersion = removeAnyAfterLastOccurence(componentVersion, ".dfsg");
+                componentVersion = removeAnyAfterLastOccurence(componentVersion, "+dfsg");
+                componentVersion = removeAnyAfterLastOccurence(componentVersion, "ubuntu");
+                componentVersion = removeAnyAfterLastOccurence(componentVersion, "-");
 
                 LOGGER.info("Post processing of component version: Debian/Ubuntu to " + componentVersion);
             }
@@ -149,7 +149,7 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
             {
                 //pkg:alpine
                 //1.2.11-r3 --> 1.2.11
-                componentVersion = removeLastOccurence(componentVersion, "-r");
+                componentVersion = removeAnyAfterLastOccurence(componentVersion, "-r");
                 LOGGER.info("Post processing of component version: Alpine to" + componentVersion);
             }
         }
@@ -163,7 +163,7 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
         }
     }
 
-    private String removeLastOccurence(String componentVersion, String searchStr) {
+    private String removeAnyAfterLastOccurence(String componentVersion, String searchStr) {
         String[] parts = componentVersion.split(searchStr);
         if(parts.length > 1)
         {
@@ -176,7 +176,7 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
         return componentVersion;
     }
 
-    private String removeFirstOccurence(String componentVersion, String searchStr) {
+    private String removeAnyBeforeFirstOccurence(String componentVersion, String searchStr) {
         String[] parts = componentVersion.split(searchStr);
         if(parts.length > 1)
         {
