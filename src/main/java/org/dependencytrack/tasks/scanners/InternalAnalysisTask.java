@@ -146,61 +146,18 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
                     }
                 }
 
-                parts = componentVersion.split(".dfsg");
-                if(parts.length > 1)
-                {
-                    componentVersion = "";
-                    for (int i=0; i<parts.length-1;i++)
-                    {
-                        componentVersion += parts[i];
-                    }
-                }
-
-                parts = componentVersion.split("+dfsg");
-                if(parts.length > 1)
-                {
-                    componentVersion = "";
-                    for (int i=0; i<parts.length-1;i++)
-                    {
-                        componentVersion += parts[i];
-                    }
-                }
-
-                String[] parts = componentVersion.split("ubuntu");
-                if(parts.length > 1)
-                {
-                    componentVersion = "";
-                    for (int i=0; i<parts.length-1;i++)
-                    {
-                        componentVersion += parts[i];
-                    }
-                }
-
-                String[] parts = componentVersion.split("-");
-                if(parts.length > 1)
-                {
-                    componentVersion = "";
-                    for (int i=0; i<parts.length-1;i++)
-                    {
-                        componentVersion += parts[i];
-                    }
-                }
-
+                componentVersion = removeLastOccurence(componentVersion, ".dfsg");
+                componentVersion = removeLastOccurence(componentVersion, "+dfsg");
+                componentVersion = removeLastOccurence(componentVersion, "ubuntu");
+                componentVersion = removeLastOccurence(componentVersion, "-");
+                
                 LOGGER.info("Post processing of component version: Debian/Ubuntu to " + componentVersion);
             }
             else if(strCoordinate.contains("pkg:alpine"))
             {
                 //pkg:alpine
                 //1.2.11-r3 --> 1.2.11
-                String[] parts = componentVersion.split("-r");
-                if(parts.length > 1)
-                {
-                    componentVersion = "";
-                    for (int i=0; i<parts.length-1;i++)
-                    {
-                        componentVersion += parts[i];
-                    }
-                }
+                componentVersion = removeLastOccurence(componentVersion, "-r");
                 LOGGER.info("Post processing of component version: Alpine to" + componentVersion);
             }
         }
@@ -212,6 +169,19 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
             final List<VulnerableSoftware> vsList = qm.getAllVulnerableSoftware(null, null, null, component.getPurl());
             super.analyzeVersionRange(qm, vsList, componentVersion, null, component);
         }
+    }
+
+    private String removeLastOccurence(String componentVersion, String searchStr) {
+        String[] parts = componentVersion.split(searchStr);
+        if(parts.length > 1)
+        {
+            componentVersion = "";
+            for (int i=0; i<parts.length-1;i++)
+            {
+                componentVersion += parts[i];
+            }
+        }
+        return componentVersion;
     }
 
     private void fuzzyCpeAnalysis(final QueryManager qm, final Component component) {
