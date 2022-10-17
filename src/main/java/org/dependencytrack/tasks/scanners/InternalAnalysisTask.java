@@ -136,21 +136,13 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
                 //1:1.2.11.dfsg-2ubuntu9 --> 1.2.11
                 //pkg:deb/debian
                 //1:1.2.11.dfsg-2+deb11u1 --> 1.2.11
-                String[] parts = componentVersion.split(":");
-                if(parts.length > 1)
-                {
-                    componentVersion = "";
-                    for (int i=1; i<parts.length;i++)
-                    {
-                        componentVersion += parts[i];
-                    }
-                }
+                componentVersion = removeFirstOccurence(componentVersion, ":");
 
                 componentVersion = removeLastOccurence(componentVersion, ".dfsg");
                 componentVersion = removeLastOccurence(componentVersion, "+dfsg");
                 componentVersion = removeLastOccurence(componentVersion, "ubuntu");
                 componentVersion = removeLastOccurence(componentVersion, "-");
-                
+
                 LOGGER.info("Post processing of component version: Debian/Ubuntu to " + componentVersion);
             }
             else if(strCoordinate.contains("pkg:alpine"))
@@ -177,6 +169,19 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
         {
             componentVersion = "";
             for (int i=0; i<parts.length-1;i++)
+            {
+                componentVersion += parts[i];
+            }
+        }
+        return componentVersion;
+    }
+
+    private String removeFirstOccurence(String componentVersion, String searchStr) {
+        String[] parts = componentVersion.split(searchStr);
+        if(parts.length > 1)
+        {
+            componentVersion = "";
+            for (int i=1; i<parts.length;i++)
             {
                 componentVersion += parts[i];
             }
