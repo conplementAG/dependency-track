@@ -133,7 +133,7 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
             if(strCoordinate.contains("pkg:deb/ubuntu") || strCoordinate.contains("pkg:deb/debian"))
             {
                 //pkg:deb/ubuntu
-                //1:1.2.11.dfsg-2ubuntu9 	--> 1.2.11
+                //1:1.2.11.dfsg-2ubuntu9 --> 1.2.11
                 //pkg:deb/debian
                 //1:1.2.11.dfsg-2+deb11u1 --> 1.2.11
                 String[] parts = componentVersion.split(":");
@@ -156,7 +156,37 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
                     }
                 }
 
-                LOGGER.info("Post processing of component version: Debian/Ubuntu to" + componentVersion);
+                parts = componentVersion.split("+dfsg");
+                if(parts.length > 1)
+                {
+                    componentVersion = "";
+                    for (int i=0; i<parts.length-1;i++)
+                    {
+                        componentVersion += parts[i];
+                    }
+                }
+
+                String[] parts = componentVersion.split("ubuntu");
+                if(parts.length > 1)
+                {
+                    componentVersion = "";
+                    for (int i=0; i<parts.length-1;i++)
+                    {
+                        componentVersion += parts[i];
+                    }
+                }
+
+                String[] parts = componentVersion.split("-");
+                if(parts.length > 1)
+                {
+                    componentVersion = "";
+                    for (int i=0; i<parts.length-1;i++)
+                    {
+                        componentVersion += parts[i];
+                    }
+                }
+
+                LOGGER.info("Post processing of component version: Debian/Ubuntu to " + componentVersion);
             }
             else if(strCoordinate.contains("pkg:alpine"))
             {
