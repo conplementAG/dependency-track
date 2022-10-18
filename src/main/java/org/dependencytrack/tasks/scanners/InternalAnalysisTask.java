@@ -150,7 +150,7 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
                 //pkg:alpine
                 //1.2.11-r3 --> 1.2.11
                 componentVersion = removeAnyAfterLastOccurence(componentVersion, "-r");
-                LOGGER.info("Post processing of component version: Alpine to" + componentVersion);
+                LOGGER.info("Post processing of component version: Alpine to " + componentVersion);
             }
         }
 
