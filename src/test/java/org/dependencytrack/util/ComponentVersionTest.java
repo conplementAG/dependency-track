@@ -67,4 +67,16 @@ public class ComponentVersionTest {
         Assert.assertEquals("1", parts.get(0));
         Assert.assertEquals("34", parts.get(1));
     }
+
+    @Test
+    public void testParseUbuntuGitVersion() {
+        ComponentVersion version = new ComponentVersion("1:2.34.1-1ubuntu1.4");
+
+        List<String> parts = version.getVersionParts();
+        Assert.assertEquals("2", parts.get(0));
+        Assert.assertEquals("34", parts.get(1));
+        Assert.assertEquals("1", parts.get(2));
+    }
+
+
 }
