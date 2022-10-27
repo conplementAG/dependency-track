@@ -83,10 +83,16 @@ public class ComponentVersion implements Iterable<String>, Comparable<ComponentV
             // https://github.com/DependencyTrack/dependency-track/issues/1374
             // handle deb versions
             String lcVersion = version.toLowerCase();
-            final Pattern debrx = Pattern.compile("^([0-9]+:)?(.*)(-[^-]+ubuntu[^-]+)$");
-            final Matcher debmatcher = debrx.matcher(lcVersion);
-            if (debmatcher.matches()) {
-                lcVersion = debmatcher.group(2);
+            final Pattern ubuntu_rx = Pattern.compile("^([0-9]+:)?(.*)(-[^-]+ubuntu[^-]+)$");
+            final Matcher ubuntu_matcher = ubuntu_rx.matcher(lcVersion);
+            if (ubuntu_matcher.matches()) {
+                lcVersion = ubuntu_matcher.group(2);
+            }
+
+            final Pattern debian_rx = Pattern.compile("^([0-9]+:)?(.*)(-[^-]+deb[^-]+)$");
+            final Matcher debian_matcher = debian_rx.matcher(lcVersion);
+            if (debian_matcher.matches()) {
+                lcVersion = debian_matcher.group(2);
             }
 
             final Pattern rx = Pattern.compile("(\\d+[a-z]{1,3}$|[a-z]{1,3}[_-]?\\d+|\\d+|(rc|release|snapshot|beta|alpha)$)",
