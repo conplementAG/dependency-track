@@ -61,7 +61,7 @@ public class InternalAnalysisTaskTest extends PersistenceCapableTest {
         component = qm.createComponent(component, false);
 
         //cpe:2.3:a:git_project:git:*:*:*:*:*:*:*:* ( |<=2.3.9 )
-        string cpe23Uri = "cpe:2.3:a:git_project:git:*:*:*:*:*:*:*:*";
+        String cpe23Uri = "cpe:2.3:a:git_project:git:*:*:*:*:*:*:*:*";
         var vulnerableSoftware = org.dependencytrack.parser.nvd.ModelConverter.convertCpe23UriToVulnerableSoftware(cpe23Uri);
         vulnerableSoftware.setPurlType("golang");
         vulnerableSoftware.setPurlNamespace("github.com/tidwall");
