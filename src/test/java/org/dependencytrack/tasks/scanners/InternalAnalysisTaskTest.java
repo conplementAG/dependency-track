@@ -57,6 +57,7 @@ public class InternalAnalysisTaskTest extends PersistenceCapableTest {
         component.setName("git");
         component.setVersion("1:2.34.1-1ubuntu1.4");
         component.setPurl("pkg:deb/ubuntu/git@1%3A2.34.1-1ubuntu1.4?arch=amd64&distro=ubuntu-22.04");
+        component.setCpe("cpe:2.3:a:git:git:1\:2.34.1-1ubuntu1.4:*:*:*:*:*:*:*");
         component = qm.createComponent(component, false);
 
         //cpe:2.3:a:git_project:git:*:*:*:*:*:*:*:* ( |<=2.3.9 )
