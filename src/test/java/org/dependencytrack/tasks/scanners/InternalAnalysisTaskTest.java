@@ -62,12 +62,15 @@ public class InternalAnalysisTaskTest extends PersistenceCapableTest {
 
         //cpe:2.3:a:git_project:git:*:*:*:*:*:*:*:* ( |<=2.3.9 )
         String cpe23Uri = "cpe:2.3:a:git_project:git:*:*:*:*:*:*:*:*";
-        var vulnerableSoftware = org.dependencytrack.parser.nvd.ModelConverter.convertCpe23UriToVulnerableSoftware(cpe23Uri);
-        vulnerableSoftware.setPurlType("golang");
-        vulnerableSoftware.setPurlNamespace("github.com/tidwall");
-        vulnerableSoftware.setPurlName("gjson");
-        vulnerableSoftware.setVersionEndIncluding("2.3.9");
-        vulnerableSoftware.setVulnerable(true);
+        VulnerableSoftware vulnerableSoftware = null;
+        try {
+            vulnerableSoftware = org.dependencytrack.parser.nvd.ModelConverter.convertCpe23UriToVulnerableSoftware(cpe23Uri);
+            vulnerableSoftware.setVersionEndIncluding("2.3.9");
+            vulnerableSoftware.setVulnerable(true);
+        } catch (CpeParsingException | CpeEncodingException e) {
+            assertThat(false);
+        }
+        assertThat(null != vulnerableSoftware);
         vulnerableSoftware = qm.persist(vulnerableSoftware);
 
         var vulnerability = new Vulnerability();
