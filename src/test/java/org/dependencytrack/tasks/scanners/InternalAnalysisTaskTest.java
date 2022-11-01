@@ -6,6 +6,8 @@ import org.dependencytrack.model.Component;
 import org.dependencytrack.model.Project;
 import org.dependencytrack.model.Vulnerability;
 import org.dependencytrack.model.VulnerableSoftware;
+import us.springett.parsers.cpe.exceptions.CpeEncodingException;
+import us.springett.parsers.cpe.exceptions.CpeParsingException;
 import org.junit.Test;
 
 import java.util.List;
