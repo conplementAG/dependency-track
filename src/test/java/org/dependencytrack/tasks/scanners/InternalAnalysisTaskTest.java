@@ -89,7 +89,7 @@ public class InternalAnalysisTaskTest extends PersistenceCapableTest {
     }
 
     @Test
-    public void testGitFalsePositives() {
+    public void testGit() {
         var project = new Project();
         project.setName("Test");
         project = qm.createProject(project, List.of(), false);
