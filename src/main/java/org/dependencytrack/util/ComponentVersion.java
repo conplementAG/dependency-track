@@ -80,6 +80,10 @@ public class ComponentVersion implements Iterable<String>, Comparable<ComponentV
     public final void parseVersion(String version) {
         versionParts = new ArrayList<>();
         if (version != null) {
+            // Skip leading 'v'
+            if (version.length() > 1 && version.startsWith("v")) {
+                version = version.substring(1);
+            }
             // https://github.com/DependencyTrack/dependency-track/issues/1374
             // handle deb versions
             String lcVersion = version.toLowerCase();

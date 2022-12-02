@@ -48,6 +48,7 @@ import org.dependencytrack.parser.ossindex.model.ComponentReport;
 import org.dependencytrack.parser.ossindex.model.ComponentReportVulnerability;
 import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.util.NotificationUtil;
+import org.dependencytrack.util.ComponentVersion;
 import us.springett.cvss.Cvss;
 import us.springett.cvss.CvssV2;
 import us.springett.cvss.CvssV3;
@@ -56,6 +57,7 @@ import us.springett.cvss.Score;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 
 /**
  * Subscriber task that performs an analysis of component using Sonatype OSS Index REST API.
@@ -200,15 +202,29 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
         if (purl == null) {
             return null;
         }
-        String p = purl.canonicalize();
-        p = p.replaceFirst("@v", "@");
-        if (p.contains("?")) {
-            p = p.substring(0, p.lastIndexOf("?"));
+
+        // Distributions often have their own version prefixes of suffixes that OSSIndex probably does not know about.
+        // Remove those and leave the bare package version.
+        ComponentVersion componentVersion = new ComponentVersion(purl.getVersion());
+
+        TreeMap<String,String> treeMap = new TreeMap<String,String>();
+        treeMap.putAll(purl.getQualifiers());
+
+        try{
+            PackageURL newPurl = new PackageURL(purl.getType(), purl.getNamespace(), purl.getName(), componentVersion.toString(), treeMap, purl.getSubpath());
+            String p = newPurl.canonicalize();
+            p = p.replaceFirst("@v", "@");
+            if (p.contains("?")) {
+                p = p.substring(0, p.lastIndexOf("?"));
+            }
+            if (p.contains("#")) {
+                p = p.substring(0, p.lastIndexOf("#"));
+            }
+            return p;
         }
-        if (p.contains("#")) {
-            p = p.substring(0, p.lastIndexOf("#"));
+        catch (MalformedPackageURLException e) {
+            return null;
         }
-        return p;
     }
 
     /**

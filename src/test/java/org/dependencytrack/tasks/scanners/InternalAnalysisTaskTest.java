@@ -62,8 +62,8 @@ public class InternalAnalysisTaskTest extends PersistenceCapableTest {
         component.setCpe("cpe:2.3:a:git:git:1\\:2.34.1-1ubuntu1.4:*:*:*:*:*:*:*");
         component = qm.createComponent(component, false);
 
-        //cpe:2.3:a:git_project:git:*:*:*:*:*:*:*:* ( |<=2.3.9 )
-        String cpe23Uri = "cpe:2.3:a:git_project:git:*:*:*:*:*:*:*:*";
+        //cpe:2.3:a:git:git:*:*:*:*:*:*:*:* ( |<=2.3.9 )
+        String cpe23Uri = "cpe:2.3:a:git:git:*:*:*:*:*:*:*:*";
         VulnerableSoftware vulnerableSoftware = null;
         try {
             vulnerableSoftware = org.dependencytrack.parser.nvd.ModelConverter.convertCpe23UriToVulnerableSoftware(cpe23Uri);
@@ -101,8 +101,8 @@ public class InternalAnalysisTaskTest extends PersistenceCapableTest {
         component.setCpe("cpe:2.3:a:git:git:1\\:2.3.9-1ubuntu1.4:*:*:*:*:*:*:*");
         component = qm.createComponent(component, false);
 
-        //cpe:2.3:a:git_project:git:*:*:*:*:*:*:*:* ( |<=2.3.9 )
-        String cpe23Uri = "cpe:2.3:a:git_project:git:*:*:*:*:*:*:*:*";
+        //cpe:2.3:a:git:git:*:*:*:*:*:*:*:* ( |<=2.3.9 )
+        String cpe23Uri = "cpe:2.3:a:git:git:*:*:*:*:*:*:*:*";
         VulnerableSoftware vulnerableSoftware = null;
         try {
             vulnerableSoftware = org.dependencytrack.parser.nvd.ModelConverter.convertCpe23UriToVulnerableSoftware(cpe23Uri);
