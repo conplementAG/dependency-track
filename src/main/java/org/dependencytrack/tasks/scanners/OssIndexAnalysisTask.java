@@ -58,6 +58,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
+import java.util.Map;
 
 /**
  * Subscriber task that performs an analysis of component using Sonatype OSS Index REST API.
@@ -207,8 +208,15 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
         // Remove those and leave the bare package version.
         ComponentVersion componentVersion = new ComponentVersion(purl.getVersion());
 
-        TreeMap<String,String> treeMap = new TreeMap<String,String>();
-        treeMap.putAll(purl.getQualifiers());
+        TreeMap<String,String> treeMap = null;
+
+
+        // PackageURL getQualifiers() returns Map<*>, but constructor requires TreeMap<*>.
+        Map<String,String> oldMap = purl.getQualifiers();
+        if( oldMap != null){
+            treeMap = new TreeMap<String,String>();
+            treeMap.putAll(purl.getQualifiers());
+        }
 
         try{
             PackageURL newPurl = new PackageURL(purl.getType(), purl.getNamespace(), purl.getName(), componentVersion.toString(), treeMap, purl.getSubpath());
@@ -220,9 +228,12 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
             if (p.contains("#")) {
                 p = p.substring(0, p.lastIndexOf("#"));
             }
+            LOGGER.info("minimizePurl original " + purl.toString() + " new " + newPurl.toString());
+
             return p;
         }
         catch (MalformedPackageURLException e) {
+            LOGGER.info("minimizePurl exception, original " + purl.toString() + ", exception " + e.toString());
             return null;
         }
     }
@@ -239,8 +250,10 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
         if (apiUsername != null && apiToken != null) {
             request.basicAuth(apiUsername, apiToken);
         }
+        LOGGER.info("OSSIndex payload <<<" + payload.toString() + ">>>");
         final HttpResponse<JsonNode> jsonResponse = request.body(payload).asJson();
         if (jsonResponse.getStatus() == 200) {
+            LOGGER.info("OSSIndex response <<<" + jsonResponse.getBody().toString() + ">>>");
             final OssIndexParser parser = new OssIndexParser();
             return parser.parse(jsonResponse.getBody());
         } else {
