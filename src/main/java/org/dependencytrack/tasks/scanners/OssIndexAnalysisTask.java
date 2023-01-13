@@ -127,7 +127,7 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
         return component.getPurl() != null
                 && component.getPurl().getName() != null
                 && component.getPurl().getVersion() != null
-                && component.getPurl().getType() != "deb"; // debian packages seem to be not indexed by OSSIndex
+                && !component.getPurl().getType().equals("deb"); // debian packages seem to be not indexed by OSSIndex
     }
 
     /**
@@ -229,7 +229,7 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
             if (p.contains("#")) {
                 p = p.substring(0, p.lastIndexOf("#"));
             }
-            if( purl.toString() != newPurl.toString()) {
+            if( !purl.toString().equals(newPurl.toString()) ) {
                 LOGGER.info("minimizePurl original " + purl.toString() + " new " + newPurl.toString());
             }
             return p;
