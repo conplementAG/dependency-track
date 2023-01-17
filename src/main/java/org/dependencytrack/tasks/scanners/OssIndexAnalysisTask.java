@@ -231,7 +231,7 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
                 p = p.substring(0, p.lastIndexOf("#"));
             }
             if( !purl.toString().equals(p.toString()) ) {
-                LOGGER.info("minimizePurl original " + purl.toString() + " new " + newPurl.toString());
+                LOGGER.info("minimizePurl original " + purl.toString() + " new " + p.toString());
             }
             return p;
         }
