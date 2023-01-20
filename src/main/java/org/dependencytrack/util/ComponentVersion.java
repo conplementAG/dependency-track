@@ -99,7 +99,7 @@ public class ComponentVersion implements Iterable<String>, Comparable<ComponentV
                 lcVersion = debian_matcher.group(2);
             }
 
-            final Pattern rx = Pattern.compile("(\\d+[a-z]{1,3}$|[a-z]{1,3}[_-]?\\d+|\\d+|(rc|release|snapshot|beta|alpha)$)",
+            final Pattern rx = Pattern.compile("(\\d+[a-z]{1,3}$|(rc|release|snapshot|beta|alpha)|[a-z]{1,3}[_-]?\\d+|\\d+$)",
                     Pattern.CASE_INSENSITIVE);
             final Matcher matcher = rx.matcher(lcVersion);
             while (matcher.find()) {

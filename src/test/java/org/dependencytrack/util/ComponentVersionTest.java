@@ -78,5 +78,16 @@ public class ComponentVersionTest {
         Assert.assertEquals("1", parts.get(2));
     }
 
+    @Test
+    public void testParseBetaPackage() {
+        ComponentVersion version = new ComponentVersion("1.1.0-beta004");
+
+        List<String> parts = version.getVersionParts();
+        Assert.assertEquals("1", parts.get(0));
+        Assert.assertEquals("1", parts.get(1));
+        Assert.assertEquals("0", parts.get(2));
+        Assert.assertEquals("beta", parts.get(3));
+        Assert.assertEquals("004", parts.get(4));
+    }
 
 }
