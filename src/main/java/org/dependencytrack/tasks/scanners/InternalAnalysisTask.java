@@ -28,6 +28,7 @@ import org.dependencytrack.model.VulnerableSoftware;
 import org.dependencytrack.persistence.QueryManager;
 import us.springett.parsers.cpe.CpeParser;
 import us.springett.parsers.cpe.exceptions.CpeParsingException;
+import org.dependencytrack.util.ComponentVersion;
 
 import java.util.List;
 
@@ -109,27 +110,25 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
         // For this reason, the prefix is stripped before running analyzeVersionRange.
         //
         // REVISIT THIS WHEN ADDING NEW VULNERABILITY SOURCES!
-        String componentVersion;
+        String versionString;
         if (parsedCpe != null) {
-            componentVersion = parsedCpe.getVersion();
+            versionString = parsedCpe.getVersion();
         } else if (component.getPurl() != null) {
-            componentVersion = component.getPurl().getVersion();
+            versionString = component.getPurl().getVersion();
         } else {
             // Catch cases where the CPE couldn't be parsed and no PURL exists.
             // Should be rare, but could lead to NPEs later.
             LOGGER.debug("Neither CPE nor PURL of component " + component.getUuid() + " provide a version - skipping analysis");
             return;
         }
-        if (componentVersion.length() > 1 && componentVersion.startsWith("v")) {
-            componentVersion = componentVersion.substring(1);
-        }
+        ComponentVersion componentVersion = new ComponentVersion(versionString);
 
         if (parsedCpe != null) {
             final List<VulnerableSoftware> vsList = qm.getAllVulnerableSoftware(parsedCpe.getPart().getAbbreviation(), parsedCpe.getVendor(), parsedCpe.getProduct(), component.getPurl());
-            super.analyzeVersionRange(qm, vsList, componentVersion, parsedCpe.getUpdate(), component);
+            super.analyzeVersionRange(qm, vsList, componentVersion.toString(), parsedCpe.getUpdate(), component);
         } else {
             final List<VulnerableSoftware> vsList = qm.getAllVulnerableSoftware(null, null, null, component.getPurl());
-            super.analyzeVersionRange(qm, vsList, componentVersion, null, component);
+            super.analyzeVersionRange(qm, vsList, componentVersion.toString(), null, component);
         }
     }
 

@@ -6,6 +6,8 @@ import org.dependencytrack.model.Component;
 import org.dependencytrack.model.Project;
 import org.dependencytrack.model.Vulnerability;
 import org.dependencytrack.model.VulnerableSoftware;
+import us.springett.parsers.cpe.exceptions.CpeEncodingException;
+import us.springett.parsers.cpe.exceptions.CpeParsingException;
 import org.junit.Test;
 
 import java.util.List;
@@ -45,6 +47,84 @@ public class InternalAnalysisTaskTest extends PersistenceCapableTest {
         final PaginatedResult vulnerabilities = qm.getVulnerabilities(component);
         assertThat(vulnerabilities.getTotal()).isEqualTo(1);
         assertThat(vulnerabilities.getList(Vulnerability.class).get(0).getVulnId()).isEqualTo("GHSA-wjm3-fq3r-5x46");
+    }
+
+    @Test
+    public void testGitFalsePositives() {
+        var project = new Project();
+        project.setName("Test");
+        project = qm.createProject(project, List.of(), false);
+        var component = new Component();
+        component.setProject(project);
+        component.setName("git");
+        component.setVersion("1:2.34.1-1ubuntu1.4");
+        component.setPurl("pkg:deb/ubuntu/git@1%3A2.34.1-1ubuntu1.4?arch=amd64&distro=ubuntu-22.04");
+        component.setCpe("cpe:2.3:a:git:git:1\\:2.34.1-1ubuntu1.4:*:*:*:*:*:*:*");
+        component = qm.createComponent(component, false);
+
+        //cpe:2.3:a:git:git:*:*:*:*:*:*:*:* ( |<=2.3.9 )
+        String cpe23Uri = "cpe:2.3:a:git:git:*:*:*:*:*:*:*:*";
+        VulnerableSoftware vulnerableSoftware = null;
+        try {
+            vulnerableSoftware = org.dependencytrack.parser.nvd.ModelConverter.convertCpe23UriToVulnerableSoftware(cpe23Uri);
+            vulnerableSoftware.setVersionEndIncluding("2.3.9");
+            vulnerableSoftware.setVulnerable(true);
+        } catch (CpeParsingException | CpeEncodingException e) {
+            assertThat(false);
+        }
+        assertThat(null != vulnerableSoftware);
+        vulnerableSoftware = qm.persist(vulnerableSoftware);
+
+        var vulnerability = new Vulnerability();
+        vulnerability.setVulnId("CVE-2015-7545");
+        vulnerability.setSource(Vulnerability.Source.NVD);
+        vulnerability.setVulnerableSoftware(List.of(vulnerableSoftware));
+        qm.createVulnerability(vulnerability, false);
+
+        new InternalAnalysisTask().analyze(List.of(component));
+
+        final PaginatedResult vulnerabilities = qm.getVulnerabilities(component);
+        assertThat(vulnerabilities.getTotal()).isEqualTo(0);
+        //assertThat(vulnerabilities.getList(Vulnerability.class).get(0).getVulnId()).isEqualTo("CVE-2015-7545");
+    }
+
+    @Test
+    public void testGit() {
+        var project = new Project();
+        project.setName("Test");
+        project = qm.createProject(project, List.of(), false);
+        var component = new Component();
+        component.setProject(project);
+        component.setName("git");
+        component.setVersion("1:2.3.9-1ubuntu1.4");
+        component.setPurl("pkg:deb/ubuntu/git@1%3A2.3.9-1ubuntu1.4?arch=amd64&distro=ubuntu-22.04");
+        component.setCpe("cpe:2.3:a:git:git:1\\:2.3.9-1ubuntu1.4:*:*:*:*:*:*:*");
+        component = qm.createComponent(component, false);
+
+        //cpe:2.3:a:git:git:*:*:*:*:*:*:*:* ( |<=2.3.9 )
+        String cpe23Uri = "cpe:2.3:a:git:git:*:*:*:*:*:*:*:*";
+        VulnerableSoftware vulnerableSoftware = null;
+        try {
+            vulnerableSoftware = org.dependencytrack.parser.nvd.ModelConverter.convertCpe23UriToVulnerableSoftware(cpe23Uri);
+            vulnerableSoftware.setVersionEndIncluding("2.3.9");
+            vulnerableSoftware.setVulnerable(true);
+        } catch (CpeParsingException | CpeEncodingException e) {
+            assertThat(false);
+        }
+        assertThat(null != vulnerableSoftware);
+        vulnerableSoftware = qm.persist(vulnerableSoftware);
+
+        var vulnerability = new Vulnerability();
+        vulnerability.setVulnId("CVE-2015-7545");
+        vulnerability.setSource(Vulnerability.Source.NVD);
+        vulnerability.setVulnerableSoftware(List.of(vulnerableSoftware));
+        qm.createVulnerability(vulnerability, false);
+
+        new InternalAnalysisTask().analyze(List.of(component));
+
+        final PaginatedResult vulnerabilities = qm.getVulnerabilities(component);
+        assertThat(vulnerabilities.getTotal()).isEqualTo(1);
+        //assertThat(vulnerabilities.getList(Vulnerability.class).get(0).getVulnId()).isEqualTo("CVE-2015-7545");
     }
 
 }
