@@ -127,4 +127,82 @@ public class InternalAnalysisTaskTest extends PersistenceCapableTest {
         //assertThat(vulnerabilities.getList(Vulnerability.class).get(0).getVulnId()).isEqualTo("CVE-2015-7545");
     }
 
+    @Test
+    public void testOpensslFalsePositive() {
+        var project = new Project();
+        project.setName("Test");
+        project = qm.createProject(project, List.of(), false);
+        var component = new Component();
+        component.setProject(project);
+        component.setName("git");
+        component.setVersion("1.1.1n-0+deb11u3");
+        component.setPurl("pkg:deb/debian/openssl@1.1.1n-0%20deb11u3?arch=amd64&distro=debian-11");
+        component.setCpe("cpe:2.3:a:openssl:openssl:1.1.1n-0\\+deb11u3:*:*:*:*:*:*:*");
+        component = qm.createComponent(component, false);
+
+        String cpe23Uri = "cpe:2.3:a:openssl:openssl:*:*:*:*:*:*:*:*";
+        VulnerableSoftware vulnerableSoftware = null;
+        try {
+            vulnerableSoftware = org.dependencytrack.parser.nvd.ModelConverter.convertCpe23UriToVulnerableSoftware(cpe23Uri);
+            vulnerableSoftware.setVersionStartIncluding("1.1.1");
+            vulnerableSoftware.setVersionEndIncluding("1.1.1b");
+            vulnerableSoftware.setVulnerable(true);
+        } catch (CpeParsingException | CpeEncodingException e) {
+            assertThat(false);
+        }
+        assertThat(null != vulnerableSoftware);
+        vulnerableSoftware = qm.persist(vulnerableSoftware);
+
+        var vulnerability = new Vulnerability();
+        vulnerability.setVulnId("CVE-2015-7545");
+        vulnerability.setSource(Vulnerability.Source.NVD);
+        vulnerability.setVulnerableSoftware(List.of(vulnerableSoftware));
+        qm.createVulnerability(vulnerability, false);
+
+        new InternalAnalysisTask().analyze(List.of(component));
+
+        final PaginatedResult vulnerabilities = qm.getVulnerabilities(component);
+        assertThat(vulnerabilities.getTotal()).isEqualTo(0);
+        //assertThat(vulnerabilities.getList(Vulnerability.class).get(0).getVulnId()).isEqualTo("CVE-2015-7545");
+    }
+
+    @Test
+    public void testOpenssl() {
+        var project = new Project();
+        project.setName("Test");
+        project = qm.createProject(project, List.of(), false);
+        var component = new Component();
+        component.setProject(project);
+        component.setName("git");
+        component.setVersion("1.1.1b-0+deb11u3");
+        component.setPurl("pkg:deb/debian/openssl@1.1.1b-0%20deb11u3?arch=amd64&distro=debian-11");
+        component.setCpe("cpe:2.3:a:openssl:openssl:1.1.1b-0\\+deb11u3:*:*:*:*:*:*:*");
+        component = qm.createComponent(component, false);
+
+        String cpe23Uri = "cpe:2.3:a:openssl:openssl:*:*:*:*:*:*:*:*";
+        VulnerableSoftware vulnerableSoftware = null;
+        try {
+            vulnerableSoftware = org.dependencytrack.parser.nvd.ModelConverter.convertCpe23UriToVulnerableSoftware(cpe23Uri);
+            vulnerableSoftware.setVersionStartIncluding("1.1.1");
+            vulnerableSoftware.setVersionEndIncluding("1.1.1b");
+            vulnerableSoftware.setVulnerable(true);
+        } catch (CpeParsingException | CpeEncodingException e) {
+            assertThat(false);
+        }
+        assertThat(null != vulnerableSoftware);
+        vulnerableSoftware = qm.persist(vulnerableSoftware);
+
+        var vulnerability = new Vulnerability();
+        vulnerability.setVulnId("CVE-2015-7545");
+        vulnerability.setSource(Vulnerability.Source.NVD);
+        vulnerability.setVulnerableSoftware(List.of(vulnerableSoftware));
+        qm.createVulnerability(vulnerability, false);
+
+        new InternalAnalysisTask().analyze(List.of(component));
+
+        final PaginatedResult vulnerabilities = qm.getVulnerabilities(component);
+        assertThat(vulnerabilities.getTotal()).isEqualTo(1);
+        //assertThat(vulnerabilities.getList(Vulnerability.class).get(0).getVulnId()).isEqualTo("CVE-2015-7545");
+    }
+
 }

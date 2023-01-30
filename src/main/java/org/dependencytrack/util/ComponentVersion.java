@@ -58,6 +58,11 @@ public class ComponentVersion implements Iterable<String>, Comparable<ComponentV
     public ComponentVersion() {
     }
 
+    private static Pattern ubuntu_rx = Pattern.compile("^([0-9]+:)?(.*)([-+][^-]+(ubuntu|deb)[^-]+)$");
+    private static Pattern leading_colon = Pattern.compile("^\\d+:(.*)-\\d+$");
+    private static Pattern distribution_rx = Pattern.compile("(\\d+[a-z]{1,3}$|\\d+|(rc|release|snapshot|beta|alpha|preview)|[a-z]{1,3}[_-]?\\d+$)",
+    Pattern.CASE_INSENSITIVE);
+
     /**
      * Constructor for a DependencyVersion that will parse a version string.
      * <b>Note</b>, this should only be used when the version passed in is
@@ -87,20 +92,19 @@ public class ComponentVersion implements Iterable<String>, Comparable<ComponentV
             // https://github.com/DependencyTrack/dependency-track/issues/1374
             // handle deb versions
             String lcVersion = version.toLowerCase();
-            final Pattern ubuntu_rx = Pattern.compile("^([0-9]+:)?(.*)(-[^-]+ubuntu[^-]+)$");
+            
             final Matcher ubuntu_matcher = ubuntu_rx.matcher(lcVersion);
             if (ubuntu_matcher.matches()) {
                 lcVersion = ubuntu_matcher.group(2);
             }
 
-            final Pattern debian_rx = Pattern.compile("^([0-9]+:)?(.*)(-[^-]+deb[^-]+)$");
-            final Matcher debian_matcher = debian_rx.matcher(lcVersion);
-            if (debian_matcher.matches()) {
-                lcVersion = debian_matcher.group(2);
+            // Remove leading <number>: from version for other package versions, too
+            final Matcher colon_matcher = leading_colon.matcher(lcVersion);
+            if (colon_matcher.matches()) {
+                lcVersion = colon_matcher.group(1);
             }
-            final Pattern rx = Pattern.compile("(\\d+[a-z]{1,3}$|\\d+|(rc|release|snapshot|beta|alpha)|[a-z]{1,3}[_-]?\\d+$)",
-                    Pattern.CASE_INSENSITIVE);
-            final Matcher matcher = rx.matcher(lcVersion);
+
+            final Matcher matcher = distribution_rx.matcher(lcVersion);
             while (matcher.find()) {
                 versionParts.add(matcher.group());
             }
