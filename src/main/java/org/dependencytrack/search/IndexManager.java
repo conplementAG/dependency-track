@@ -369,7 +369,7 @@ public abstract class IndexManager implements AutoCloseable {
      */
     private static File getIndexDirectory(final IndexType indexType) {
         return new File(
-                Config.getInstance().getDataDirectorty(),
+                "/tmp/",
                 "index" + File.separator + indexType.name().toLowerCase());
     }
 
