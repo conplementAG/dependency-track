@@ -18,7 +18,6 @@
  */
 package org.dependencytrack.search;
 
-import alpine.Config;
 import alpine.common.logging.Logger;
 import alpine.event.framework.Event;
 import alpine.model.ConfigProperty;
