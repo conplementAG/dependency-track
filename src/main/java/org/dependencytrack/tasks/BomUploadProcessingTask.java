@@ -125,7 +125,9 @@ public class BomUploadProcessingTask implements Subscriber {
                         return;
                     }
                 } else {
-                    LOGGER.warn("The BOM uploaded is not in a supported format. Supported formats include CycloneDX XML and JSON");
+                    LOGGER.warn("The BOM uploaded to project: " +
+                                event.getProjectUuid() +
+                                " is not in a supported format. Supported formats include CycloneDX XML and JSON");
                     return;
                 }
                 final Project copyOfProject = qm.detach(Project.class, qm.getObjectById(Project.class, project.getId()).getId());

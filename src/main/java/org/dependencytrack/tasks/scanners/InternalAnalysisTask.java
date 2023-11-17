@@ -30,6 +30,7 @@ import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.search.FuzzyVulnerableSoftwareSearchManager;
 import us.springett.parsers.cpe.CpeParser;
 import us.springett.parsers.cpe.exceptions.CpeParsingException;
+import org.dependencytrack.util.ComponentVersion;
 
 import java.util.Collections;
 import java.util.List;
@@ -124,19 +125,7 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
         if (componentVersion == null) {
             return;
         }
-        // https://github.com/DependencyTrack/dependency-track/issues/1574
-        // Some ecosystems use the "v" version prefix (e.g. v1.2.3) for their components.
-        // However, both the NVD and GHSA store versions without that prefix.
-        // For this reason, the prefix is stripped before running analyzeVersionRange.
-        //
-        // REVISIT THIS WHEN ADDING NEW VULNERABILITY SOURCES!
-        if (componentVersion.length() > 1 && componentVersion.startsWith("v")) {
-            if (componentVersion.matches("v0.0.0-\\d{14}-[a-f0-9]{12}")) {
-                componentVersion = componentVersion.substring(7,11) + "-" + componentVersion.substring(11,13) + "-" + componentVersion.substring(13,15);
-            } else {
-                componentVersion = componentVersion.substring(1);
-            }
-        }
+        ComponentVersion cv = new ComponentVersion(componentVersion);
 
         if (parsedCpe != null) {
             vsList = qm.getAllVulnerableSoftware(parsedCpe.getPart().getAbbreviation(), parsedCpe.getVendor(), parsedCpe.getProduct(), component.getPurl());
@@ -148,7 +137,7 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
             FuzzyVulnerableSoftwareSearchManager fm = new FuzzyVulnerableSoftwareSearchManager(excludeComponentsWithPurl);
             vsList = fm.fuzzyAnalysis(qm, component, parsedCpe);
         }
-        super.analyzeVersionRange(qm, vsList, componentVersion, componentUpdate, component, vulnerabilityAnalysisLevel);
+        super.analyzeVersionRange(qm, vsList, cv.toString(), componentUpdate, component, vulnerabilityAnalysisLevel);
     }
 
 }
