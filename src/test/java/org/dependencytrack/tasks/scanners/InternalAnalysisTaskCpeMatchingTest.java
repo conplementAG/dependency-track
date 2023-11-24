@@ -43,7 +43,7 @@ import static org.dependencytrack.tasks.scanners.InternalAnalysisTaskCpeMatching
 @RunWith(Parameterized.class)
 public class InternalAnalysisTaskCpeMatchingTest extends PersistenceCapableTest {
 
-    @Parameters(name = "{index} source={0}, target={2}, expectMatch={3}")
+    @Parameters(name = "{index} source={0}, target={3}, expectMatch={2}")
     public static Collection<Object[]> parameters() {
         return Arrays.asList(new Object[][]{
                 // | No. | Source A-V | Target A-V | Relation |

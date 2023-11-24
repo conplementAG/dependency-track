@@ -34,6 +34,7 @@ import org.dependencytrack.util.ComponentVersion;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Subscriber task that performs an analysis of component using internal CPE/PURL data.
@@ -131,6 +132,15 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
             vsList = qm.getAllVulnerableSoftware(parsedCpe.getPart().getAbbreviation(), parsedCpe.getVendor(), parsedCpe.getProduct(), component.getPurl());
         } else {
             vsList = qm.getAllVulnerableSoftware(null, null, null, component.getPurl());
+        }
+
+        // Remove CVE-2021-45967 that has pattern "cpe:2.3:a:pascom_cloud_phone_system:*:*:*:*:*:*:*:*:* ( |<=7.19 )""
+        if( parsedCpe != null && parsedCpe.getVendor().equals("*")) {
+            List<VulnerableSoftware> tmp = vsList
+                .stream()
+                .filter(vs -> !(vs.getVendor() != null && vs.getProduct() != null && !vs.getVendor().equals("*") && vs.getProduct().equals("*")))
+                .collect(Collectors.toList());
+            vsList = tmp;
         }
 
         if (fuzzyEnabled && vsList.isEmpty()) {

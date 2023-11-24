@@ -236,4 +236,41 @@ public class InternalAnalysisTaskTest extends PersistenceCapableTest {
         //assertThat(vulnerabilities.getList(Vulnerability.class).get(0).getVulnId()).isEqualTo("CVE-2015-7545");
     }
 
+    @Test
+    public void testCVE_2021_45967() {
+        var project = new Project();
+        project.setName("Test");
+        project = qm.createProject(project, List.of(), false);
+        var component = new Component();
+        component.setProject(project);
+        component.setName("product");
+        component.setVersion("1.0.0");
+        component.setCpe("cpe:2.3:a:*:product:1.0.0:*:*:*:*:*:*:*");
+        component = qm.createComponent(component, false);
+
+        String cpe23Uri = "cpe:2.3:a:vendor:*:*:*:*:*:*:*:*:*";
+        VulnerableSoftware vulnerableSoftware = null;
+        try {
+            vulnerableSoftware = org.dependencytrack.parser.nvd.ModelConverter.convertCpe23UriToVulnerableSoftware(cpe23Uri);
+            vulnerableSoftware.setVersionStartIncluding("1.0.0");
+            vulnerableSoftware.setVersionEndIncluding("1.0.1");
+            vulnerableSoftware.setVulnerable(true);
+        } catch (CpeParsingException | CpeEncodingException e) {
+            assertThat(false);
+        }
+        assertThat(null != vulnerableSoftware);
+        vulnerableSoftware = qm.persist(vulnerableSoftware);
+
+        var vulnerability = new Vulnerability();
+        vulnerability.setVulnId("CVE-2021-45967");
+        vulnerability.setSource(Vulnerability.Source.NVD);
+        vulnerability.setVulnerableSoftware(List.of(vulnerableSoftware));
+        qm.createVulnerability(vulnerability, false);
+
+        new InternalAnalysisTask().analyze(List.of(component));
+
+        final PaginatedResult vulnerabilities = qm.getVulnerabilities(component);
+        assertThat(vulnerabilities.getTotal()).isEqualTo(0);
+        //assertThat(vulnerabilities.getList(Vulnerability.class).get(0).getVulnId()).isEqualTo("CVE-2015-7545");
+    }
 }
