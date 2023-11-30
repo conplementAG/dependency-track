@@ -34,7 +34,7 @@ import org.dependencytrack.util.ComponentVersion;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+// import java.util.stream.Collectors;
 
 /**
  * Subscriber task that performs an analysis of component using internal CPE/PURL data.
