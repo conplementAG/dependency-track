@@ -135,13 +135,13 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
         }
 
         // Remove CVE-2021-45967 that has pattern "cpe:2.3:a:pascom_cloud_phone_system:*:*:*:*:*:*:*:*:* ( |<=7.19 )""
-        if( parsedCpe != null && parsedCpe.getVendor().equals("*")) {
-            List<VulnerableSoftware> tmp = vsList
-                .stream()
-                .filter(vs -> !(vs.getVendor() != null && vs.getProduct() != null && !vs.getVendor().equals("*") && vs.getProduct().equals("*")))
-                .collect(Collectors.toList());
-            vsList = tmp;
-        }
+        // if( parsedCpe != null && parsedCpe.getVendor().equals("*")) {
+        //     List<VulnerableSoftware> tmp = vsList
+        //         .stream()
+        //         .filter(vs -> !(vs.getVendor() != null && vs.getProduct() != null && !vs.getVendor().equals("*") && vs.getProduct().equals("*")))
+        //         .collect(Collectors.toList());
+        //     vsList = tmp;
+        // }
 
         if (fuzzyEnabled && vsList.isEmpty()) {
             FuzzyVulnerableSoftwareSearchManager fm = new FuzzyVulnerableSoftwareSearchManager(excludeComponentsWithPurl);
