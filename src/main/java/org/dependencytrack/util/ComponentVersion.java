@@ -107,7 +107,6 @@ public class ComponentVersion implements Iterable<String>, Comparable<ComponentV
             }
         }
     }
-    }
 
     /**
      * Get the value of versionParts.
