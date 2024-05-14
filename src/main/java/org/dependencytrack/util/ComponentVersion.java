@@ -90,7 +90,7 @@ public class ComponentVersion implements Iterable<String>, Comparable<ComponentV
             }
 
             // cp custom release tag
-            final Pattern cprx = Pattern.compile("^([0-9]+\.[0-9]+\.[0-9]+)CP-[0-9a-fA-F]+\-[0-9]+\.[0-9]");
+            final Pattern cprx = Pattern.compile("^([0-9]+\\.[0-9]+\\.[0-9]+)CP-[0-9a-fA-F]+\\-[0-9]+\\.[0-9]");
             final Matcher cpmatcher = cprx.matcher(lcVersion);
             if (cpmatcher.matches()) {
                 lcVersion = cpmatcher.group(1);
