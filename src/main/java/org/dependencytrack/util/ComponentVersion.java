@@ -59,7 +59,6 @@ public class ComponentVersion implements Iterable<String>, Comparable<ComponentV
     }
 
     private static Pattern ubuntu_rx = Pattern.compile("^([0-9]+:)?(.*)([-+][^-]+(ubuntu|deb)[^-]+)$");
-    private static Pattern cp_rx = Pattern.compile("^([0-9]+\.[0-9]+\.[0-9]+)CP-[0-9a-fA-F]+\-[0-9]+\.[0-9]");
     private static Pattern leading_colon = Pattern.compile("^\\d+:(.*)-\\d+$");
     private static Pattern distribution_rx = Pattern.compile("(\\d+[a-z]{1,3}$|\\d+|(rc|release|snapshot|beta|alpha|preview)|[a-z]{1,3}[_-]?\\d+$)",
     Pattern.CASE_INSENSITIVE);
@@ -97,12 +96,6 @@ public class ComponentVersion implements Iterable<String>, Comparable<ComponentV
             final Matcher ubuntu_matcher = ubuntu_rx.matcher(lcVersion);
             if (ubuntu_matcher.matches()) {
                 lcVersion = ubuntu_matcher.group(2);
-            }
-
-            // cp custom release tag
-            final Matcher cp_matcher = cp_rx.matcher(lcVersion);
-            if (cp_matcher.matches()) {
-                lcVersion = cp_matcher.group(1);
             }
 
             // Remove leading <number>: from version for other package versions, too
