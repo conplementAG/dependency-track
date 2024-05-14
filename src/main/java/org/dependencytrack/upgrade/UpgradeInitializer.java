@@ -76,14 +76,35 @@ public class UpgradeInitializer implements ServletContextListener {
             if (RequirementsVerifier.failedValidation()) {
                 return;
             }
-            try (final PersistenceManager pm = pmf.getPersistenceManager();
-                 final QueryManager qm = new QueryManager(pm)) {
-                final UpgradeExecutor executor = new UpgradeExecutor(qm);
-                try {
-                    executor.executeUpgrades(UpgradeItems.getUpgradeItems());
-                } catch (UpgradeException e) {
-                    LOGGER.error("An error occurred performing upgrade processing. " + e.getMessage());
+
+            try
+            {
+                var field = Config.getInstance().getClass().getDeclaredField("applicationVersionProperties");
+                field.setAccessible(true);
+                var currentPropertyValue = (Properties) field.get(Config.getInstance());
+                var oldVersion = currentPropertyValue.getProperty("version");
+                var adaptedVersion = "4.9.2-SNAPSHOT";
+                currentPropertyValue.setProperty("version", adaptedVersion);
+
+                try (final PersistenceManager pm = pmf.getPersistenceManager();
+                    final QueryManager qm = new QueryManager(pm)) {
+                    final UpgradeExecutor executor = new UpgradeExecutor(qm);
+                    try {
+                        executor.executeUpgrades(UpgradeItems.getUpgradeItems());
+                    } catch (UpgradeException e) {
+                        LOGGER.error("An error occurred performing upgrade processing. " + e.getMessage());
+                    }
                 }
+                finally
+                {
+                    currentPropertyValue.setProperty("version", oldVersion);
+                    field.setAccessible(false);
+                }
+            }
+            catch(java.lang.NoSuchFieldException | java.lang.IllegalAccessException e)
+            {
+                LOGGER.error("An error occurred while upgrading SchemaVersion. During runtime version manipulation. Unable to continue.", e);
+                Runtime.getRuntime().halt(-1);
             }
         }
     }
