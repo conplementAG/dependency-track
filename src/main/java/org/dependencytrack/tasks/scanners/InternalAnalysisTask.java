@@ -30,9 +30,11 @@ import org.dependencytrack.persistence.QueryManager;
 import org.dependencytrack.search.FuzzyVulnerableSoftwareSearchManager;
 import us.springett.parsers.cpe.CpeParser;
 import us.springett.parsers.cpe.exceptions.CpeParsingException;
+import org.dependencytrack.util.ComponentVersion;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Subscriber task that performs an analysis of component using internal CPE/PURL data.
@@ -121,19 +123,7 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
         if (componentVersion == null) {
             return;
         }
-        // https://github.com/DependencyTrack/dependency-track/issues/1574
-        // Some ecosystems use the "v" version prefix (e.g. v1.2.3) for their components.
-        // However, both the NVD and GHSA store versions without that prefix.
-        // For this reason, the prefix is stripped before running analyzeVersionRange.
-        //
-        // REVISIT THIS WHEN ADDING NEW VULNERABILITY SOURCES!
-        if (componentVersion.length() > 1 && componentVersion.startsWith("v")) {
-            if (componentVersion.matches("v0.0.0-\\d{14}-[a-f0-9]{12}")) {
-                componentVersion = componentVersion.substring(7,11) + "-" + componentVersion.substring(11,13) + "-" + componentVersion.substring(13,15);
-            } else {
-                componentVersion = componentVersion.substring(1);
-            }
-        }
+        ComponentVersion cv = new ComponentVersion(componentVersion);
 
         if (parsedCpe != null) {
             vsList = qm.getAllVulnerableSoftware(parsedCpe.getPart().getAbbreviation(), parsedCpe.getVendor(), parsedCpe.getProduct(), component.getPurl());
@@ -141,11 +131,21 @@ public class InternalAnalysisTask extends AbstractVulnerableSoftwareAnalysisTask
             vsList = qm.getAllVulnerableSoftware(null, null, null, component.getPurl());
         }
 
+        // Remove CVE-2021-45967 that has pattern "cpe:2.3:a:pascom_cloud_phone_system:*:*:*:*:*:*:*:*:* ( |<=7.19 )""
+        if( parsedCpe != null && parsedCpe.getVendor().equals("*")) {
+            List<VulnerableSoftware> tmp = vsList
+                .stream()
+                .filter(vs -> !(vs.getVendor() != null && vs.getProduct() != null && !vs.getVendor().equals("*") && vs.getProduct().equals("*")))
+                .collect(Collectors.toList());
+            vsList = tmp;
+        }
+
         if (fuzzyEnabled && vsList.isEmpty()) {
             FuzzyVulnerableSoftwareSearchManager fm = new FuzzyVulnerableSoftwareSearchManager(excludeComponentsWithPurl);
             vsList = fm.fuzzyAnalysis(qm, component, parsedCpe);
         }
-        super.analyzeVersionRange(qm, vsList, parsedCpe, componentVersion, component, vulnerabilityAnalysisLevel);
+        super.analyzeVersionRange(qm, vsList, parsedCpe, cv.toString(), component, vulnerabilityAnalysisLevel);
     }
 
 }
+
