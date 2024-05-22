@@ -83,7 +83,14 @@ public class UpgradeInitializer implements ServletContextListener {
                 field.setAccessible(true);
                 var currentPropertyValue = (Properties) field.get(Config.getInstance());
                 var oldVersion = currentPropertyValue.getProperty("version");
-                var adaptedVersion = "4.9.2-SNAPSHOT";
+                var adaptedVersion = Config.getInstance().getApplicationVersion();
+
+                final Matcher m = Pattern.compile("(\\d+\\.\\d+\\.\\d+)-.*").matcher(adaptedVersion);
+                if (!m.matches()) {
+                    throw new IllegalArgumentException("Malformed version string: " + version);
+                }
+                adaptedVersion = m.group(1);
+                LOGGER.info("AdaptedVersion: " + adaptedVersion);
                 currentPropertyValue.setProperty("version", adaptedVersion);
 
                 try (final PersistenceManager pm = pmf.getPersistenceManager();
