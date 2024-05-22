@@ -41,6 +41,8 @@ import javax.servlet.ServletContextListener;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class UpgradeInitializer implements ServletContextListener {
 
@@ -87,7 +89,7 @@ public class UpgradeInitializer implements ServletContextListener {
 
                 final Matcher m = Pattern.compile("(\\d+\\.\\d+\\.\\d+)-.*").matcher(adaptedVersion);
                 if (!m.matches()) {
-                    throw new IllegalArgumentException("Malformed version string: " + version);
+                    throw new IllegalArgumentException("Malformed version string: " + adaptedVersion);
                 }
                 adaptedVersion = m.group(1);
                 LOGGER.info("AdaptedVersion: " + adaptedVersion);
