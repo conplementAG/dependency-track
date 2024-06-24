@@ -162,7 +162,7 @@ public class BomUploadProcessingTask implements Subscriber {
                     }
                 } else {
                     LOGGER.warn("The BOM uploaded to project: " +
-                                event.getProjectUuid() +
+                                event.getProject().getUuid() +
                                 " is not in a supported format. Supported formats include CycloneDX XML and JSON");
                     return;
                 }
