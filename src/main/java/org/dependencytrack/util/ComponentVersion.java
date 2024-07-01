@@ -60,7 +60,7 @@ public class ComponentVersion implements Iterable<String>, Comparable<ComponentV
 
     private static Pattern ubuntu_rx = Pattern.compile("^([0-9]+:)?(.*)([-+][^-]+(ubuntu|deb)[^-]+)$");
     private static Pattern leading_colon = Pattern.compile("^\\d+:(.*)-\\d+$");
-    private static Pattern distribution_rx = Pattern.compile("(\\d+[a-z]{1,3}$|\\d+|(rc|release|snapshot|beta|alpha|preview)|[a-z]{1,3}[_-]?\\d+$)",
+    private static Pattern distribution_rx = Pattern.compile("(\\d+[a-z]{1,3}$|[0-9*]+|(rc|release|snapshot|beta|alpha|preview)|[a-z]{1,3}[_-]?\\d+$)",
     Pattern.CASE_INSENSITIVE);
 
     /**
