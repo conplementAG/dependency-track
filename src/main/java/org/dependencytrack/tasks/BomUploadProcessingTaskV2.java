@@ -26,8 +26,8 @@ import alpine.notification.NotificationLevel;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.cyclonedx.BomParserFactory;
 import org.cyclonedx.exception.ParseException;
+import org.cyclonedx.parsers.BomParserFactory;
 import org.cyclonedx.parsers.Parser;
 import org.datanucleus.flush.FlushMode;
 import org.datanucleus.store.query.QueryNotUniqueException;
@@ -673,8 +673,7 @@ public class BomUploadProcessingTaskV2 implements Subscriber {
         // by priority, and simply take the first resolvable candidate.
         for (final org.cyclonedx.model.License licenseCandidate : component.getLicenseCandidates()) {
             if (isNotBlank(licenseCandidate.getId())) {
-                final License resolvedLicense = licenseCache.computeIfAbsent(licenseCandidate.getId(),
-                        licenseId -> resolveLicense(qm, licenseId));
+                final License resolvedLicense = licenseCache.computeIfAbsent(licenseCandidate.getId(), qm::getLicenseByIdOrName);
                 if (resolvedLicense != License.UNRESOLVED) {
                     component.setResolvedLicense(resolvedLicense);
                     component.setLicenseUrl(trimToNull(licenseCandidate.getUrl()));
@@ -683,8 +682,7 @@ public class BomUploadProcessingTaskV2 implements Subscriber {
             }
 
             if (isNotBlank(licenseCandidate.getName())) {
-                final License resolvedLicense = licenseCache.computeIfAbsent(licenseCandidate.getName(),
-                        licenseName -> resolveLicense(qm, licenseName));
+                final License resolvedLicense = licenseCache.computeIfAbsent(licenseCandidate.getName(), qm::getLicenseByIdOrName);
                 if (resolvedLicense != License.UNRESOLVED) {
                     component.setResolvedLicense(resolvedLicense);
                     component.setLicenseUrl(trimToNull(licenseCandidate.getUrl()));
@@ -711,18 +709,6 @@ public class BomUploadProcessingTaskV2 implements Subscriber {
                         component.setLicense(trim(license.getName()));
                         component.setLicenseUrl(trimToNull(license.getUrl()));
                     });
-        }
-    }
-
-    private static License resolveLicense(final QueryManager qm, final String licenseId) {
-        final Query<License> query = qm.getPersistenceManager().newQuery(License.class);
-        query.setFilter("licenseId == :licenseId");
-        query.setParameters(licenseId);
-        try {
-            final License license = query.executeUnique();
-            return license != null ? license : License.UNRESOLVED;
-        } finally {
-            query.closeAll();
         }
     }
 
