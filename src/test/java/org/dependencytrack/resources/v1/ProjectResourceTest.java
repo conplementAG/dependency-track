@@ -31,6 +31,7 @@ import org.dependencytrack.model.Analysis;
 import org.dependencytrack.model.AnalysisJustification;
 import org.dependencytrack.model.AnalysisResponse;
 import org.dependencytrack.model.AnalysisState;
+import org.dependencytrack.model.Classifier;
 import org.dependencytrack.model.Component;
 import org.dependencytrack.model.ConfigPropertyConstants;
 import org.dependencytrack.model.ExternalReference;
@@ -38,6 +39,7 @@ import org.dependencytrack.model.OrganizationalContact;
 import org.dependencytrack.model.OrganizationalEntity;
 import org.dependencytrack.model.Project;
 import org.dependencytrack.model.ProjectMetadata;
+import org.dependencytrack.model.ProjectMetrics;
 import org.dependencytrack.model.ProjectProperty;
 import org.dependencytrack.model.ServiceComponent;
 import org.dependencytrack.model.Tag;
@@ -55,13 +57,17 @@ import org.junit.Test;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -252,19 +258,211 @@ public class ProjectResourceTest extends ResourceTest {
 
     @Test
     public void getProjectByUuidTest() {
-        Project project = qm.createProject("ABC", null, "1.0", null, null, null, true, false);
-        Response response = jersey.target(V1_PROJECT + "/" + project.getUuid())
+        final var parentProject = new Project();
+        parentProject.setName("parent");
+        parentProject.setVersion("1.2.3");
+        qm.persist(parentProject);
+
+        final var manufacturer = new OrganizationalEntity();
+        manufacturer.setName("manufacturer");
+
+        final var supplier = new OrganizationalEntity();
+        supplier.setName("supplier");
+
+        final var property = new ProjectProperty();
+        property.setGroupName("groupName");
+        property.setPropertyName("propertyName");
+        property.setPropertyValue("propertyValue");
+        property.setPropertyType(PropertyType.STRING);
+
+        final var externalRef = new ExternalReference();
+        externalRef.setUrl("https://example.com");
+        externalRef.setType(Type.WEBSITE);
+
+        final var project = new Project();
+        project.setAuthor("author");
+        project.setPublisher("publisher");
+        project.setManufacturer(manufacturer);
+        project.setSupplier(supplier);
+        project.setGroup("group");
+        project.setName("name");
+        project.setVersion("1.0.0");
+        project.setClassifier(Classifier.LIBRARY);
+        project.setDescription("description");
+        project.setDirectDependencies("[{\"uuid\":\"c162be63-35f0-4059-b28b-327e6a01390a\"}]");
+        project.setCpe("cpe:2.3:*:vendor:product:1.0.0:update:edition:lang:swEdition:targetSw:targetHw:other");
+        project.setPurl("pkg:maven/namespace/name@1.0.0");
+        project.setSwidTagId("swidTagId");
+        project.setParent(parentProject);
+        project.setProperties(List.of(property));
+        project.setLastBomImport(new Date(1643767322000L));
+        project.setLastBomImportFormat("lastBomImportFormat");
+        project.setLastInheritedRiskScore(66.6);
+        project.setActive(false);
+        project.setExternalReferences(List.of(externalRef));
+        qm.persist(project);
+
+        qm.bind(project, List.of(qm.createTag("tag-1")));
+
+        final var metadataAuthor = new OrganizationalContact();
+        metadataAuthor.setName("metadataAuthor");
+        final var metadataSupplier = new OrganizationalEntity();
+        metadataSupplier.setName("metadataSupplier");
+        final var metadata = new ProjectMetadata();
+        metadata.setAuthors(List.of(metadataAuthor));
+        metadata.setSupplier(metadataSupplier);
+        metadata.setProject(project);
+        qm.persist(metadata);
+
+        final var metrics = new ProjectMetrics();
+        metrics.setProject(project);
+        metrics.setCritical(6);
+        metrics.setHigh(6);
+        metrics.setMedium(6);
+        metrics.setLow(6);
+        metrics.setUnassigned(6);
+        metrics.setVulnerabilities(6);
+        metrics.setVulnerableComponents(6);
+        metrics.setComponents(6);
+        metrics.setFindingsTotal(6);
+        metrics.setFindingsAudited(6);
+        metrics.setFindingsUnaudited(6);
+        metrics.setInheritedRiskScore(66.6);
+        metrics.setSuppressed(6);
+        metrics.setPolicyViolationsTotal(6);
+        metrics.setPolicyViolationsFail(6);
+        metrics.setPolicyViolationsInfo(6);
+        metrics.setPolicyViolationsWarn(6);
+        metrics.setPolicyViolationsAudited(6);
+        metrics.setPolicyViolationsUnaudited(6);
+        metrics.setPolicyViolationsLicenseAudited(6);
+        metrics.setPolicyViolationsLicenseTotal(6);
+        metrics.setPolicyViolationsLicenseUnaudited(6);
+        metrics.setPolicyViolationsOperationalAudited(6);
+        metrics.setPolicyViolationsOperationalTotal(6);
+        metrics.setPolicyViolationsOperationalUnaudited(6);
+        metrics.setPolicyViolationsSecurityAudited(6);
+        metrics.setPolicyViolationsSecurityTotal(6);
+        metrics.setPolicyViolationsSecurityUnaudited(6);
+        metrics.setFirstOccurrence(new Date(1677812583000L));
+        metrics.setLastOccurrence(new Date(1677812583000L));
+        qm.persist(metrics);
+
+        final UUID parentProjectUuid = parentProject.getUuid();
+        final UUID projectUuid = project.getUuid();
+
+        // Nuke L1 and L2 cache and close PM to ensure all changes are flushed.
+        qm.getPersistenceManager().getPersistenceManagerFactory().getDataStoreCache().evictAll();
+        qm.getPersistenceManager().evictAll();
+        qm.close();
+
+        final Response response = jersey.target(V1_PROJECT + "/" + projectUuid)
                 .request()
                 .header(X_API_KEY, apiKey)
-                .get(Response.class);
-        Assert.assertEquals(200, response.getStatus(), 0);
-        Assert.assertNull(response.getHeaderString(TOTAL_COUNT_HEADER));
-        JsonObject json = parseJsonObject(response);
-        Assert.assertNotNull(json);
-        Assert.assertEquals("ABC", json.getString("name"));
-        Assert.assertEquals(1, json.getJsonArray("versions").size());
-        Assert.assertEquals(project.getUuid().toString(), json.getJsonArray("versions").getJsonObject(0).getJsonString("uuid").getString());
-        Assert.assertEquals("1.0", json.getJsonArray("versions").getJsonObject(0).getJsonString("version").getString());
+                .get();
+        assertThat(response.getStatus()).isEqualTo(200);
+        assertThatJson(getPlainTextBody(response))
+                .withMatcher("parentProjectUuid", equalTo(parentProjectUuid.toString()))
+                .withMatcher("projectUuid", equalTo(projectUuid.toString()))
+                .isEqualTo(/* language=JSON */ """
+                        {
+                          "active": false,
+                          "author": "author",
+                          "children": [],
+                          "classifier": "LIBRARY",
+                          "cpe": "cpe:2.3:*:vendor:product:1.0.0:update:edition:lang:swEdition:targetSw:targetHw:other",
+                          "description": "description",
+                          "directDependencies": "[{\\"uuid\\":\\"c162be63-35f0-4059-b28b-327e6a01390a\\"}]",
+                          "externalReferences": [
+                            {
+                              "type": "website",
+                              "url": "https://example.com"
+                            }
+                          ],
+                          "group": "group",
+                          "lastBomImport": 1643767322000,
+                          "lastBomImportFormat": "lastBomImportFormat",
+                          "lastInheritedRiskScore": 66.6,
+                          "manufacturer": {
+                            "name": "manufacturer"
+                          },
+                          "metadata": {
+                            "supplier": {
+                              "name": "metadataSupplier"
+                            },
+                            "authors": [
+                              {
+                                "name":"metadataAuthor"
+                              }
+                            ]
+                          },
+                          "metrics":{
+                            "critical": 6,
+                            "high": 6,
+                            "medium": 6,
+                            "low": 6,
+                            "unassigned": 6,
+                            "vulnerabilities": 6,
+                            "vulnerableComponents":6,
+                            "components": 6,
+                            "suppressed": 6,
+                            "findingsTotal": 6,
+                            "findingsAudited": 6,
+                            "findingsUnaudited": 6,
+                            "inheritedRiskScore": 66.6,
+                            "policyViolationsFail": 6,
+                            "policyViolationsWarn": 6,
+                            "policyViolationsInfo": 6,
+                            "policyViolationsTotal": 6,
+                            "policyViolationsAudited": 6,
+                            "policyViolationsUnaudited": 6,
+                            "policyViolationsSecurityTotal": 6,
+                            "policyViolationsSecurityAudited": 6,
+                            "policyViolationsSecurityUnaudited": 6,
+                            "policyViolationsLicenseTotal": 6,
+                            "policyViolationsLicenseAudited": 6,
+                            "policyViolationsLicenseUnaudited": 6,
+                            "policyViolationsOperationalTotal": 6,
+                            "policyViolationsOperationalAudited": 6,
+                            "policyViolationsOperationalUnaudited": 6,
+                            "firstOccurrence": 1677812583000,
+                            "lastOccurrence": 1677812583000
+                          },
+                          "name": "name",
+                          "parent": {
+                            "name": "parent",
+                            "uuid": "${json-unit.matches:parentProjectUuid}",
+                            "version": "1.2.3"
+                          },
+                          "properties": [
+                            {
+                              "groupName": "groupName",
+                              "propertyName": "propertyName",
+                              "propertyType": "STRING",
+                              "propertyValue": "propertyValue"
+                            }
+                          ],
+                          "publisher": "publisher",
+                          "purl": "pkg:maven/namespace/name@1.0.0",
+                          "supplier": {
+                            "name": "supplier"
+                          },
+                          "swidTagId": "swidTagId",
+                          "tags": [
+                            {
+                              "name": "tag-1"
+                            }
+                          ],
+                          "uuid": "${json-unit.matches:projectUuid}",
+                          "version": "1.0.0",
+                          "versions": [
+                            {
+                              "uuid": "${json-unit.matches:projectUuid}",
+                              "version": "1.0.0"
+                            }
+                          ]
+                        }
+                        """);
     }
 
     @Test
@@ -1076,6 +1274,78 @@ public class ProjectResourceTest extends ResourceTest {
         Assert.assertNotNull(json);
         Assert.assertNotNull(json.getString("token"));
         Assert.assertTrue(UuidUtil.isValidUUID(json.getString("token")));
+    }
+
+    @Test // https://github.com/DependencyTrack/dependency-track/issues/4048
+    public void issue4048RegressionTest() {
+        final int projectsPerLevel = 10;
+        final int maxDepth = 5;
+
+        final Map<Integer, List<UUID>> projectUuidsByLevel = new HashMap<>();
+
+        // Create multiple parent-child hierarchies of projects.
+        for (int i = 0; i < maxDepth; i++) {
+            final List<UUID> parentUuids = projectUuidsByLevel.get(i - 1);
+
+            for (int j = 0; j < projectsPerLevel; j++) {
+                final UUID parentUuid = i > 0 ? parentUuids.get(j) : null;
+
+                final JsonObjectBuilder requestBodyBuilder = Json.createObjectBuilder()
+                        .add("name", "project-%d-%d".formatted(i, j))
+                        .add("version", "%d.%d".formatted(i, j));
+                if (parentUuid != null) {
+                    requestBodyBuilder.add("parent", Json.createObjectBuilder()
+                            .add("uuid", parentUuid.toString()));
+                }
+
+                final Response response = jersey.target(V1_PROJECT)
+                        .request()
+                        .header(X_API_KEY, apiKey)
+                        .put(Entity.json(requestBodyBuilder.build().toString()));
+                assertThat(response.getStatus()).isEqualTo(201);
+                final JsonObject jsonResponse = parseJsonObject(response);
+
+                projectUuidsByLevel.compute(i, (ignored, uuids) -> {
+                    final UUID uuid = UUID.fromString(jsonResponse.getString("uuid"));
+                    if (uuids == null) {
+                        return new ArrayList<>(List.of(uuid));
+                    }
+
+                    uuids.add(uuid);
+                    return uuids;
+                });
+            }
+        }
+
+        // Pick out the UUIDs of projects that should have a parent (i.e. level 1 or above).
+        final List<UUID> childUuids = projectUuidsByLevel.entrySet().stream()
+                .filter(entry -> entry.getKey() > 0)
+                .map(Map.Entry::getValue)
+                .flatMap(List::stream)
+                .toList();
+
+        // Create a [uuid -> level] mapping for better assertion failure reporting.
+        final Map<UUID, Integer> levelByChildUuid = projectUuidsByLevel.entrySet().stream()
+                .filter(entry -> entry.getKey() > 0)
+                .flatMap(entry -> {
+                    final Integer level = entry.getKey();
+                    return entry.getValue().stream().map(uuid -> Map.entry(uuid, level));
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        // Request all child projects individually.
+        // Ensure that the parent field is populated for all of them.
+        for (final UUID uuid : childUuids) {
+            final Response response = jersey.target(V1_PROJECT + "/" + uuid)
+                    .request()
+                    .header(X_API_KEY, apiKey)
+                    .get();
+            assertThat(response.getStatus()).isEqualTo(200);
+            final JsonObject json = parseJsonObject(response);
+            assertThat(json.getJsonObject("parent"))
+                    .withFailMessage("Parent missing on level: " + levelByChildUuid.get(uuid))
+                    .isNotEmpty();
+        }
     }
 
 }
