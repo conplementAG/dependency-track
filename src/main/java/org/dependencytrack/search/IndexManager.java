@@ -18,7 +18,6 @@
  */
 package org.dependencytrack.search;
 
-import alpine.Config;
 import alpine.common.logging.Logger;
 import alpine.common.metrics.Metrics;
 import alpine.event.framework.Event;
@@ -481,7 +480,7 @@ public abstract class IndexManager implements AutoCloseable {
      */
     private static File getIndexDirectory(final IndexType indexType) {
         return new File(
-                Config.getInstance().getDataDirectorty(),
+                "/tmp/",
                 "index" + File.separator + indexType.name().toLowerCase());
     }
 
