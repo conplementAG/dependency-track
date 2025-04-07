@@ -54,6 +54,7 @@ import org.dependencytrack.parser.ossindex.OssIndexParser;
 import org.dependencytrack.parser.ossindex.model.ComponentReport;
 import org.dependencytrack.parser.ossindex.model.ComponentReportVulnerability;
 import org.dependencytrack.persistence.QueryManager;
+import org.dependencytrack.util.ComponentVersion;
 import org.dependencytrack.util.DebugDataEncryption;
 import org.dependencytrack.util.HttpUtil;
 import org.dependencytrack.util.NotificationUtil;
@@ -69,6 +70,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.TreeMap;
 
 import static org.dependencytrack.common.ConfigKey.OSSINDEX_RETRY_BACKOFF_INITIAL_DURATION_MS;
 import static org.dependencytrack.common.ConfigKey.OSSINDEX_RETRY_BACKOFF_MAX_DURATION_MS;
@@ -187,7 +189,9 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
     public boolean isCapable(final Component component) {
         return component.getPurl() != null
                 && component.getPurl().getName() != null
-                && component.getPurl().getVersion() != null;
+                && component.getPurl().getVersion() != null
+                && !component.getPurl().getType().equals("deb")
+                && !component.getPurl().getType().equals("alpine"); // debian/alpine packages seem to be not indexed by OSSIndex
     }
 
     /**
@@ -265,15 +269,40 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
         if (purl == null) {
             return null;
         }
-        String p = purl.canonicalize();
-        p = p.replaceFirst("@v", "@");
-        if (p.contains("?")) {
-            p = p.substring(0, p.lastIndexOf("?"));
+
+        // Distributions often have their own version prefixes of suffixes that OSSIndex probably does not know about.
+        // Remove those and leave the bare package version.
+        ComponentVersion componentVersion = new ComponentVersion(purl.getVersion());
+
+        TreeMap<String,String> treeMap = null;
+
+
+        // PackageURL getQualifiers() returns Map<*>, but constructor requires TreeMap<*>.
+        Map<String,String> oldMap = purl.getQualifiers();
+        if( oldMap != null){
+            treeMap = new TreeMap<String,String>();
+            treeMap.putAll(purl.getQualifiers());
         }
-        if (p.contains("#")) {
-            p = p.substring(0, p.lastIndexOf("#"));
+
+        try{
+            PackageURL newPurl = new PackageURL(purl.getType(), purl.getNamespace(), purl.getName(), componentVersion.toString(), treeMap, purl.getSubpath());
+            String p = newPurl.canonicalize();
+            p = p.replaceFirst("@v", "@");
+            if (p.contains("?")) {
+                p = p.substring(0, p.lastIndexOf("?"));
+            }
+            if (p.contains("#")) {
+                p = p.substring(0, p.lastIndexOf("#"));
+            }
+            if( !purl.toString().equals(p.toString()) ) {
+                LOGGER.info("minimizePurl original " + purl.toString() + " new " + p.toString());
+            }
+            return p;
         }
-        return p;
+        catch (MalformedPackageURLException e) {
+            LOGGER.info("minimizePurl exception, original " + purl.toString() + ", exception " + e.toString());
+            return null;
+        }
     }
 
     /**
