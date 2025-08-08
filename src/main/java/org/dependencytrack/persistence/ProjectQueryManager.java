@@ -75,6 +75,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -458,7 +459,7 @@ final class ProjectQueryManager extends QueryManager implements IQueryManager {
      * @return the created Project
      */
     @Override
-    public Project createProject(final Project project, List<Tag> tags, boolean commitIndex) {
+    public Project createProject(final Project project, Collection<Tag> tags, boolean commitIndex) {
         if (project.getParent() != null && !Boolean.TRUE.equals(project.getParent().isActive())){
             throw new IllegalArgumentException("An inactive Parent cannot be selected as parent");
         }
@@ -470,8 +471,19 @@ final class ProjectQueryManager extends QueryManager implements IQueryManager {
                 persist(oldLatestProject);
             }
 
+            if (project.getCollectionLogic() == ProjectCollectionLogic.AGGREGATE_DIRECT_CHILDREN_WITH_TAG
+                && project.getCollectionTag() != null) {
+                final Tag resolvedCollectionTag = resolveTags(List.of(project.getCollectionTag())).iterator().next();
+                project.setCollectionTag(resolvedCollectionTag);
+            } else {
+                project.setCollectionTag(null);
+            }
+
+            // Ensure that tags are not created implicitly but go through resolveTags instead.
+            final Set<Tag> resolvedTags = resolveTags(tags);
+            project.setTags(null);
+
             final Project newProject = persist(project);
-            final List<Tag> resolvedTags = resolveTags(tags);
             bind(project, resolvedTags);
             return newProject;
         });
@@ -569,16 +581,16 @@ final class ProjectQueryManager extends QueryManager implements IQueryManager {
                 persist(oldLatestProject);
             }
 
-            final List<Tag> resolvedTags = resolveTags(transientProject.getTags());
+            final Set<Tag> resolvedTags = resolveTags(transientProject.getTags());
             bind(project, resolvedTags);
 
             // Set collection tag only if selected collectionLogic requires it. Clear it otherwise.
             if(transientProject.getCollectionLogic().equals(ProjectCollectionLogic.AGGREGATE_DIRECT_CHILDREN_WITH_TAG) &&
                     transientProject.getCollectionTag() != null) {
-                final List<Tag> resolvedCollectionTags = resolveTags(Collections.singletonList(
+                final Set<Tag> resolvedCollectionTags = resolveTags(Collections.singletonList(
                         transientProject.getCollectionTag()
                 ));
-                project.setCollectionTag(resolvedCollectionTags.get(0));
+                project.setCollectionTag(resolvedCollectionTags.iterator().next());
             } else {
                 project.setCollectionTag(null);
             }
@@ -1377,13 +1389,15 @@ final class ProjectQueryManager extends QueryManager implements IQueryManager {
             boolean modified = false;
 
             if (project.getTags() == null) {
-                project.setTags(new ArrayList<>());
+                project.setTags(new HashSet<>());
             }
 
             if (!keepExisting) {
-                for (final Tag existingTag : project.getTags()) {
+                final Iterator<Tag> existingTagsIterator = project.getTags().iterator();
+                while (existingTagsIterator.hasNext()) {
+                    final Tag existingTag = existingTagsIterator.next();
                     if (!tags.contains(existingTag)) {
-                        project.getTags().remove(existingTag);
+                        existingTagsIterator.remove();
                         if (existingTag.getProjects() != null) {
                             existingTag.getProjects().remove(project);
                         }
@@ -1397,8 +1411,8 @@ final class ProjectQueryManager extends QueryManager implements IQueryManager {
                     project.getTags().add(tag);
 
                     if (tag.getProjects() == null) {
-                        tag.setProjects(new ArrayList<>(List.of(project)));
-                    } else if (!tag.getProjects().contains(project)) {
+                        tag.setProjects(new HashSet<>(Set.of(project)));
+                    } else {
                         tag.getProjects().add(project);
                     }
 
@@ -1416,7 +1430,7 @@ final class ProjectQueryManager extends QueryManager implements IQueryManager {
      * @param tags a List of Tag objects
      */
     @Override
-    public void bind(final Project project, final List<Tag> tags) {
+    public void bind(final Project project, final Collection<Tag> tags) {
         bind(project, tags, /* keepExisting */ false);
     }
 
