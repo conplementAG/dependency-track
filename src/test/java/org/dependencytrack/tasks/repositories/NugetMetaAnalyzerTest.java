@@ -69,6 +69,11 @@ public class NugetMetaAnalyzerTest {
         );
     }
 
+    @Before
+    public void setUp() {
+        mockServer.reset();
+    }
+
     private static void setupMockServerClient(
             String path,
             String responseFile,
