@@ -203,6 +203,7 @@ public class Project implements Serializable {
     @Persistent
     @Column(name = "DESCRIPTION", jdbcType = "VARCHAR")
     @JsonDeserialize(using = TrimmedStringDeserializer.class)
+    @Size(max = 255)
     @Pattern(regexp = RegexSequence.Definition.PRINTABLE_CHARS, message = "The description may only contain printable characters")
     private String description;
 
@@ -664,19 +665,15 @@ public class Project implements Serializable {
 
     @Override
     public String toString() {
-        if (getPurl() != null) {
-            return getPurl().canonicalize();
-        } else {
-            StringBuilder sb = new StringBuilder();
-            if (getGroup() != null) {
-                sb.append(getGroup()).append(" : ");
-            }
-            sb.append(getName());
-            if (getVersion() != null) {
-                sb.append(" : ").append(getVersion());
-            }
-            return sb.toString();
+        StringBuilder sb = new StringBuilder();
+        if (getGroup() != null) {
+            sb.append(getGroup()).append(" : ");
         }
+        sb.append(getName());
+        if (getVersion() != null) {
+            sb.append(" : ").append(getVersion());
+        }
+        return sb.toString();
     }
 
     private final static class BooleanDefaultTrueSerializer extends JsonSerializer<Boolean> {
