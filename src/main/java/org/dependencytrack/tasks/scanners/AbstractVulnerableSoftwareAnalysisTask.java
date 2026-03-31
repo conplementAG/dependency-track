@@ -31,6 +31,7 @@ import org.dependencytrack.model.Vulnerability;
 import org.dependencytrack.model.VulnerabilityAnalysisLevel;
 import org.dependencytrack.model.VulnerableSoftware;
 import org.dependencytrack.persistence.QueryManager;
+import org.dependencytrack.util.ComponentVersion;
 import org.dependencytrack.util.NotificationUtil;
 import org.dependencytrack.util.PurlUtil;
 import us.springett.parsers.cpe.Cpe;
