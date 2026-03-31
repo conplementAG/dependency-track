@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.TreeMap;
 
 import static org.dependencytrack.common.ConfigKey.OSSINDEX_RETRY_BACKOFF_INITIAL_DURATION_MS;
 import static org.dependencytrack.common.ConfigKey.OSSINDEX_RETRY_BACKOFF_MAX_DURATION_MS;
@@ -241,7 +242,9 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
                 && component.getPurl() != null
                 && SUPPORTED_PURL_TYPES.contains(component.getPurl().getType())
                 && component.getPurl().getName() != null
-                && component.getPurl().getVersion() != null;
+                && component.getPurl().getVersion() != null
+                && !component.getPurl().getType().equals("deb")
+                && !component.getPurl().getType().equals("alpine"); // debian/alpine packages seem to be not indexed by OSSIndex
     }
 
     /**

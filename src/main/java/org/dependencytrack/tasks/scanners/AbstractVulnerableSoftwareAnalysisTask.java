@@ -256,7 +256,7 @@ public abstract class AbstractVulnerableSoftwareAnalysisTask extends BaseCompone
 
         // Modified from original by Steve Springett
         // Added null check: vs.getVersion() != null as purl sources that use version ranges may not have version populated.
-        if (!result && vs.getVersion() != null && Cpe.compareAttribute(vs.getVersion(), targetCpe.getVersion()) != Relation.DISJOINT) {
+        if (!result && vs.getVersion() != null && Cpe.compareAttribute(new ComponentVersion(vs.getVersion()).toString(), targetCpe.getVersion()) != Relation.DISJOINT) {
             return true;
         }
 

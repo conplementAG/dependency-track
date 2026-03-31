@@ -160,7 +160,7 @@ public class BomUploadProcessingTask implements Subscriber {
             final Parser bomParser = BomParserFactory.createParser(event.getBom());
             cdxBom = bomParser.parse(event.getBom());
         } catch (ParseException e) {
-            LOGGER.error("Failed to parse BOM", e);
+            LOGGER.error("Failed to parse BOM for project " + event.getProject().getUuid(), e);
             dispatchBomProcessingFailedNotification(ctx, e);
             return;
         }
@@ -182,7 +182,7 @@ public class BomUploadProcessingTask implements Subscriber {
             LOGGER.debug("Dispatching %d events".formatted(eventsToDispatch.size()));
             eventsToDispatch.forEach(Event::dispatch);
         } catch (RuntimeException e) {
-            LOGGER.error("Failed to process BOM", e);
+            LOGGER.error("Failed to process BOM for project " + event.getProject().getUuid(), e);
             dispatchBomProcessingFailedNotification(ctx, e);
         } finally {
             lock.unlock();
