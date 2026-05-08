@@ -241,9 +241,7 @@ public class OssIndexAnalysisTask extends BaseComponentAnalyzerTask implements C
                 && component.getPurl() != null
                 && SUPPORTED_PURL_TYPES.contains(component.getPurl().getType())
                 && component.getPurl().getName() != null
-                && component.getPurl().getVersion() != null
-                && !component.getPurl().getType().equals("deb")
-                && !component.getPurl().getType().equals("alpine"); // debian/alpine packages seem to be not indexed by OSSIndex
+                && component.getPurl().getVersion() != null;
     }
 
     /**
