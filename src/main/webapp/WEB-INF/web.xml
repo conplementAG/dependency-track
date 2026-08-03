@@ -76,15 +76,6 @@
     </filter-mapping>
 
     <filter>
-        <filter-name>OidcCallbackFilter</filter-name>
-        <filter-class>org.dependencytrack.filters.OidcCallbackFilter</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>OidcCallbackFilter</filter-name>
-        <url-pattern>/static/oidc-callback.html</url-pattern>
-    </filter-mapping>
-
-    <filter>
         <filter-name>ClickjackingFilter</filter-name>
         <filter-class>alpine.server.filters.ClickjackingFilter</filter-class>
         <init-param>
