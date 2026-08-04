@@ -251,7 +251,7 @@ public final class PersistenceUtil {
 
         // Other RDBMSes use the SQL state to communicate errors.
         if (rootCause instanceof final SQLException se) {
-            return MysqlErrorNumbers.SQL_STATE_INTEGRITY_CONSTRAINT_VIOLATION.equals(se.getSQLState()) // MySQL
+            return MysqlErrorNumbers.SQLSTATE_INTEGRITY_CONSTRAINT_VIOLATION_NO_SUBCLASS.equals(se.getSQLState()) // MySQL
                     || PSQLState.UNIQUE_VIOLATION.getState().equals(se.getSQLState()) // PostgreSQL
                     || "23000".equals(se.getSQLState()); // SQL Server
         }

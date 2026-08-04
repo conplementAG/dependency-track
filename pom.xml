@@ -123,8 +123,13 @@
         <lib.com-asahaf-javacron.version>1.4.0</lib.com-asahaf-javacron.version>
         <!-- JDBC Drivers -->
         <lib.jdbc-driver.mssql.version>13.4.0.jre11</lib.jdbc-driver.mssql.version>
-        <lib.jdbc-driver.mysql.version>8.2.0</lib.jdbc-driver.mysql.version>
-        <lib.jdbc-driver.postgresql.version>42.7.11</lib.jdbc-driver.postgresql.version>
+        <lib.jdbc-driver.mysql.version>26.7.0</lib.jdbc-driver.mysql.version>
+        <lib.jdbc-driver.postgresql.version>42.7.13</lib.jdbc-driver.postgresql.version>
+        <!-- Overrides of alpine-parent-managed versions to address CVEs -->
+        <!-- CVE-2026-59889 (GHSA-5gvw-p9qm-jgwh): @JsonView bypass, fixed in 2.21.5+/2.22.1 -->
+        <lib.jackson.version>2.22.1</lib.jackson.version>
+        <!-- CVE-2026-10050, CVE-2026-6790, CVE-2026-8384 (jetty-util path traversal), CVE-2026-10051: all fixed by 12.1.9/12.1.10 -->
+        <lib.jetty.version>12.1.11</lib.jetty.version>
         <!-- Maven Plugin Properties -->
         <plugin.retirejs.breakOnFailure>false</plugin.retirejs.breakOnFailure>
         <plugin.protoc-jar.version>3.11.4</plugin.protoc-jar.version>

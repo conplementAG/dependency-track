@@ -25,9 +25,9 @@ ARG UID=1000
 ARG GID=1000
 ARG WAR_FILENAME=dependency-track-apiserver.jar
 
-FROM eclipse-temurin:25.0.2_10-jre-jammy@sha256:d36843a6f1af5d0aca01ef3d926e2220444eb19fe38e1b23cef3d663ef29b306 AS jre-build
+FROM eclipse-temurin:25.0.3_9-jre-jammy@sha256:5bd5dbe00f40ea149de434a75029713765a2912cfc1fd770cc7c7aff007384ea AS jre-build
 
-FROM debian:stable-slim@sha256:8f0c555de6a2f9c2bda1b170b67479d11f7f5e3b66bb4a7a1d8843361c9dd3ff
+FROM debian:stable-slim@sha256:328d16499860ae6cb9b345e2e4cebca08c2a36e4f7278482c7bd1f39d71e5bfd
 
 ARG COMMIT_SHA
 ARG APP_VERSION
@@ -69,8 +69,10 @@ RUN mkdir -p ${APP_DIR} ${DATA_DIR} \
     && chown -R dtrack:0 ${DATA_DIR} ${APP_DIR} \
     && chmod -R g=u ${DATA_DIR} ${APP_DIR} \
     \
-    # Install curl for health check
+    # Upgrade all preinstalled OS packages (e.g. curl, libcurl) to the latest available
+    # security patches, then install curl for the health check
     && apt-get -yqq update \
+    && DEBIAN_FRONTEND=noninteractive apt-get -yqq upgrade \
     && DEBIAN_FRONTEND=noninteractive apt-get install -yqq --no-install-recommends curl tini \
     && rm -rf /var/lib/apt/lists/*
 
